@@ -9,25 +9,65 @@
                 margin: 6px;
                 margin-left: 10px;
             }
+            .main {
+                display: flex;
+            }
+            #form-container {
+                flex: 1;
+                display: flex;
+                justify-content: center; 
+                align-items: center;
+            }
+            #form {
+                width: 50%
+            }
+            #meetings {
+                text-align: center;
+                margin-top: 30px;
+            }
+            #link {
+                text-align: center;
+            }
         </style>
     </head>
     <body>
-        <button id="btn1" type="button" class="btn btn-outline-secondary"><div id="tag1">
-            <h3>2:00 PM</h3>
-            <h6></h6>
-        </div></button><br>
-        <button id="btn2" type="button" class="btn btn-outline-secondary"><div id="tag1">
-            <h3>2:30 PM</h3>
-            <h6></h6>
-        </div></button><br>
-        <button id="btn3" type="button" class="btn btn-outline-secondary"><div id="tag1">
-            <h3>3:00 PM</h3>
-            <h6></h6>
-        </div></button><br>
-        <button id="btn4" type="button" class="btn btn-outline-secondary"><div id="tag1">
-            <h3>4:00 PM</h3>
-            <h6></h6>
-        </div></button>
+        <div class="main">
+            <div>
+                <button id="btn1" type="button" class="btn btn-outline-secondary">
+                    <div id="tag1">
+                        <h3>2:00 PM</h3>
+                        <h6></h6>
+                    </div>
+                </button><br>
+                <button id="btn2" type="button" class="btn btn-outline-secondary">
+                    <div id="tag1">
+                        <h3>2:30 PM</h3>
+                        <h6></h6>
+                    </div>
+                </button><br>
+                <button id="btn3" type="button" class="btn btn-outline-secondary">
+                    <div id="tag1">
+                        <h3>3:00 PM</h3>
+                        <h6></h6>
+                    </div>
+                </button><br>
+                <button id="btn4" type="button" class="btn btn-outline-secondary">
+                    <div id="tag1">
+                        <h3>4:00 PM</h3>
+                        <h6></h6>
+                    </div>
+                </button>
+            </div>
+            <div id="form-container">
+                <div id="link">
+                </div>
+            </div>
+        </div>
+        <div id="meetings">
+            <b><h4>Scheduled meetings</h4></b>
+            <div id="meetings-scheduled">
+            </div>
+        </div>
         <script src="main.js"></script>
     </body>
 </html>
