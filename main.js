@@ -81,23 +81,17 @@ function cancelMeeting(indexToRemove, timing) {
     update_data();
 }
 
-function fetchingData(){
-    let containerDiv = document.createElement("div");
-    containerDiv.id = "meetingContainer";
-    containerDiv.style.display = "flex";
-    containerDiv.style.flexWrap = "wrap";
-    let keys = Object.keys(localStorage);
-    var lastKey = keys[keys.length - 1];
-    let data = localStorage.getItem(lastKey);
+function fetchingData(time){
+    let data = localStorage.getItem(time);
     let parsed_array = JSON.parse(data);
     let nameData = parsed_array[parsed_array.length-1].name;
     let newDiv = document.createElement("div");
-    newDiv.id = "newMeetingDiv-" + lastKey; 
+    newDiv.id = "newMeetingDiv-" + time; 
     let wrappingElement = document.createElement("span");
-    let textNode = document.createTextNode(`Slot confirmed ${nameData}. Please join at ${lastKey} Via `);
+    let textNode = document.createTextNode(`Slot confirmed ${nameData}. Please join at ${time} Via `);
     let anchorTag = document.createElement("a");
-    anchorTag.href = meetings_link[lastKey]; 
-    anchorTag.innerHTML = meetings_link[lastKey]
+    anchorTag.href = meetings_link[time]; 
+    anchorTag.innerHTML = meetings_link[time]
     anchorTag.target='/';
     wrappingElement.appendChild(textNode);
     wrappingElement.appendChild(anchorTag);
@@ -107,16 +101,16 @@ function fetchingData(){
     button1.innerHTML = "Cancel";
     button1.style.backgroundColor = "orange"; 
     button1.addEventListener("click", function () {
-        cancelMeeting(parsed_array.length-1, lastKey);
+        cancelMeeting(parsed_array.length-1, time);
     });
     newDiv.appendChild(wrappingElement);
     newDiv.appendChild(button1);
     newDiv.setAttribute('style', 'text-align: center; height: 150px; width: 250px; border: 2px solid #333; box-shadow: 3px 3px 5px #888888; margin: 10px');
-    containerDiv.appendChild(newDiv);
     let scheduledDiv = document.getElementById("scheduled");
-    scheduledDiv.appendChild(containerDiv);
+    scheduledDiv.appendChild(newDiv);
 
 }
+
 
 function update_data(time,name) {
     let h6_b1 = localStorage.getItem('2:00 PM') 
@@ -205,7 +199,7 @@ function afterSubmit(time,name) {
     setTimeout(function() {
         linkDiv.removeAttribute('style');
       }, 3000);
-    fetchingData();
+    fetchingData(time);
 };
 
 function func1() {
