@@ -17,81 +17,80 @@ let meetings_link =  {
 
 
 document.addEventListener('DOMContentLoaded', async function () {
+    
     update_data();
     fetchingalldata();
 });
 
-function fetchingalldata() {
+async function fetchingalldata() {
     let containerDiv = document.createElement("div");
     containerDiv.id = "meetingContainer";
     containerDiv.style.display = "flex";
     containerDiv.style.flexWrap = "wrap";
-
-    for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
-        let data = localStorage.getItem(key);
-        let parsed_array = JSON.parse(data);
-
-        for (let j = 0; j < parsed_array.length; j++) {
-            let nameData = parsed_array[j].name;
-            let newDiv = document.createElement("div");
-            newDiv.id = "newMeetingDiv-" + key; 
-            let wrappingElement = document.createElement("span");
-            let textNode = document.createTextNode(`Slot confirmed ${nameData}. Please join at ${key} Via `);
-            let anchorTag = document.createElement("a");
-            anchorTag.href = meetings_link[key];
-            anchorTag.innerHTML = meetings_link[key];
-            anchorTag.target = '/';
-            wrappingElement.appendChild(textNode);
-            wrappingElement.appendChild(anchorTag);
-            let lineBreak = document.createElement('br');
-            wrappingElement.appendChild(lineBreak);
-            let button1 = document.createElement("button");
-            button1.innerHTML = "Cancel";
-            button1.style.backgroundColor = "orange";
-            button1.addEventListener("click", function () {
-                cancelMeeting(j, key);
-            });
-            newDiv.appendChild(wrappingElement);
-            newDiv.appendChild(button1);
-            newDiv.setAttribute('style', 'text-align: center; height: 150px; width: 250px; border: 2px solid #333; box-shadow: 3px 3px 5px #888888; margin: 10px');
-            containerDiv.appendChild(newDiv);
-        }
+    containerDiv.style.justifyContent = "space-between";
+    try{
+        const response = await axios.get('http://localhost:3000/home_page');
+        if(response){
+            let res_data = response.data;
+            let total_rows = response.data.full_Data.length;
+            console.log(res_data);
+            console.log(total_rows); 
+            for (let i = 0; i < total_rows; i++) {
+                let row_value = res_data.full_Data[i];
+                console.log('row value: ',row_value);
+                let newDiv = document.createElement("div");
+                newDiv.id = "newMeetingDiv-" + row_value.id; 
+                let wrappingElement = document.createElement("span");
+                let textNode = document.createTextNode(`Slot confirmed ${row_value.name}. Please join at ${row_value.time} Via `);
+                let anchorTag = document.createElement("a");
+                anchorTag.href = meetings_link[row_value.time];
+                anchorTag.innerHTML = meetings_link[row_value.time];
+                anchorTag.target = '/';
+                wrappingElement.appendChild(textNode);
+                wrappingElement.appendChild(anchorTag);
+                let lineBreak = document.createElement('br');
+                wrappingElement.appendChild(lineBreak);
+                let button1 = document.createElement("button");
+                button1.innerHTML = "Cancel";
+                button1.style.backgroundColor = "orange";
+                button1.addEventListener("click", function () {
+                    cancelMeeting(row_value);
+                });
+                
+                newDiv.appendChild(wrappingElement);
+                newDiv.appendChild(button1);
+                newDiv.setAttribute('style', 'text-align: center; height: 150px; width: 250px; border: 2px solid #333; box-shadow: 3px 3px 5px #888888; margin: 10px');
+                containerDiv.appendChild(newDiv);
+                }
+            }
+            let scheduledDiv = document.getElementById("scheduled");
+            scheduledDiv.appendChild(containerDiv);
+        } catch(err){
+        console.log(err);
     }
-    let scheduledDiv = document.getElementById("scheduled");
-    scheduledDiv.appendChild(containerDiv);
-}
+};
 
-
-function cancelMeeting(indexToRemove, timing) {
-    let data = localStorage.getItem(timing);
-    let parsed_array = JSON.parse(data);
-    parsed_array[parsed_array.length-1].count++;
-    parsed_array.splice(indexToRemove, 1);
-
-    if (parsed_array.length === 0) {
-        localStorage.removeItem(timing);
-    } else {
-        localStorage.setItem(timing, JSON.stringify(parsed_array));
-    }
-    let meetingDivToRemove = document.getElementById("newMeetingDiv-" + timing);
+function cancelMeeting(data_row) {
+    console.log("I am in Cancel meeting function");
+    let meetingDivToRemove = document.getElementById("newMeetingDiv-" + data_row.id);
     if (meetingDivToRemove) {
         meetingDivToRemove.remove();
     }
+    axios.delete(`http://localhost:3000/delete_row/${data_row.id}`)
+    .then((res)=>{
+        console.log(res);
+    })
     update_data();
 }
 
-function fetchingData(time){
-    let data = localStorage.getItem(time);
-    let parsed_array = JSON.parse(data);
-    let nameData = parsed_array[parsed_array.length-1].name;
+function fetchingData(res){
     let newDiv = document.createElement("div");
-    newDiv.id = "newMeetingDiv-" + time; 
+    newDiv.id = "newMeetingDiv-" + res.time; 
     let wrappingElement = document.createElement("span");
-    let textNode = document.createTextNode(`Slot confirmed ${nameData}. Please join at ${time} Via `);
+    let textNode = document.createTextNode(`Slot confirmed ${res.name}. Please join at ${res.time} Via `);
     let anchorTag = document.createElement("a");
-    anchorTag.href = meetings_link[time]; 
-    anchorTag.innerHTML = meetings_link[time]
+    anchorTag.href = meetings_link[res.time]; 
+    anchorTag.innerHTML = meetings_link[res.time]
     anchorTag.target='/';
     wrappingElement.appendChild(textNode);
     wrappingElement.appendChild(anchorTag);
@@ -101,29 +100,57 @@ function fetchingData(time){
     button1.innerHTML = "Cancel";
     button1.style.backgroundColor = "orange"; 
     button1.addEventListener("click", function () {
-        cancelMeeting(parsed_array.length-1, time);
+        cancelMeeting(res);
     });
     newDiv.appendChild(wrappingElement);
     newDiv.appendChild(button1);
     newDiv.setAttribute('style', 'text-align: center; height: 150px; width: 250px; border: 2px solid #333; box-shadow: 3px 3px 5px #888888; margin: 10px');
-    let scheduledDiv = document.getElementById("scheduled");
+    let scheduledDiv = document.getElementById("meetingContainer");
     scheduledDiv.appendChild(newDiv);
-
 }
 
 
-function update_data(time,name) {
-    let h6_b1 = localStorage.getItem('2:00 PM') 
-    let h6_b2 = localStorage.getItem('2:30 PM')
-    let h6_b3 = localStorage.getItem('3:00 PM')
-    let h6_b4 = localStorage.getItem('4:00 PM')
+async function update_data(row) {
+    const response = await axios.get('http://localhost:3000/databyTime');
+    console.log(response);
+
+    let data_2PM = response.data.data_2PM;
+    let data_2_30PM = response.data.data_2_30PM;
+    let data_3PM = response.data.data_3PM;
+    let data_4PM = response.data.data_4PM;
+
+    console.log("data_2PM", data_2PM);
+    console.log("data_2_30PM", data_2_30PM);
+    console.log("data_3PM", data_3PM);
+    console.log("data_4PM", data_4PM);
+
+    let h6_b1;
+    let h6_b2;
+    let h6_b3;
+    let h6_b4;
+
+    if(data_2PM){
+
+        h6_b1 =  data_2PM[data_2PM.length-1].count;
+    }
+    if(data_2_30PM){
+        
+        h6_b2 = data_2_30PM[data_2_30PM.length-1].count;
+    }
+    if(data_3PM){
+        
+        h6_b3 = data_3PM[data_3PM.length-1].count;
+    }
+    if(data_4PM){
+
+        h6_b4 = data_4PM[data_4PM.length-1].count;
+    }
+
+    console.log(h6_b1,h6_b2,h6_b3,h6_b4);
+
     if (h6_b1) {
-        let parsedArray_1 = JSON.parse(h6_b1);
-        let last_val = parsedArray_1[parsedArray_1.length-1];
-        let cnt_val = last_val.count;
-        console.log(cnt_val)
-        if(cnt_val>0){
-            b1.querySelector('h6').innerText = cnt_val + " Available";
+        if(h6_b1>0){
+            b1.querySelector('h6').innerText = h6_b1 + " Available";
         }else {
             b1.remove();
         }
@@ -132,12 +159,8 @@ function update_data(time,name) {
         b1.querySelector('h6').innerText = "4 Available"
     }
     if (h6_b2) {
-        let parsedArray = JSON.parse(h6_b2);
-        let last_val = parsedArray[parsedArray.length-1];
-        let cnt_val = last_val.count;
-        console.log(cnt_val)
-        if(cnt_val>0){
-            b2.querySelector('h6').innerText = cnt_val + " Available";
+        if(h6_b2>0){
+            b2.querySelector('h6').innerText = h6_b2 + " Available";
         }else {
             b2.remove();
         }
@@ -145,13 +168,10 @@ function update_data(time,name) {
     } else {
         b2.querySelector('h6').innerText = "4 Available"
     }
+
     if (h6_b3) {
-        let parsedArray = JSON.parse(h6_b3);
-        let last_val = parsedArray[parsedArray.length-1];
-        let cnt_val = last_val.count;
-        console.log(cnt_val)
-        if(cnt_val>0){
-            b3.querySelector('h6').innerText = cnt_val + " Available";
+        if(h6_b3>0){
+            b3.querySelector('h6').innerText = h6_b3 + " Available";
         }else {
             b3.remove();
         }
@@ -159,20 +179,16 @@ function update_data(time,name) {
         b3.querySelector('h6').innerText = "4 Available"
     }
     if (h6_b4) {
-        let parsedArray = JSON.parse(h6_b4);
-        let last_val = parsedArray[parsedArray.length-1];
-        let cnt_val = last_val.count;
-        console.log(cnt_val)
-        if(cnt_val>0){
-            b4.querySelector('h6').innerText = cnt_val + " Available";
+        if(h6_b4>0){
+            b4.querySelector('h6').innerText = h6_b4 + " Available";
         }else {
             b4.remove();
         }
     } else {
         b4.querySelector('h6').innerText = "4 Available"
     }
-    if (time,name) {
-        afterSubmit(time,name);
+    if (row) {
+        await afterSubmit(row);
         setTimeout(function () {
             let removetag = document.getElementById('divtag');
             if (removetag) {
@@ -182,15 +198,16 @@ function update_data(time,name) {
     }
 };
 
-function afterSubmit(time,name) {
+async function afterSubmit(res) {
+    console.log(res,"res in after submit function")
     let div_tag = document.createElement('div');
     div_tag.id = "divtag"
     let linkDiv = document.getElementById("link");
     let text1 = document.createElement('div');
-    text1.innerText = `Slot confirmed ${name}. Please join at ${time} Via `;
+    text1.innerText = `Slot confirmed ${res.name}. Please join at ${res.time} Via `;
     let anchor = document.createElement('a');
-    anchor.href = meetings_link[time]
-    anchor.textContent = meetings_link[time]
+    anchor.href = meetings_link[res.time]
+    anchor.textContent = meetings_link[res.time]
     anchor.target = '/';
     text1.appendChild(anchor);
     div_tag.appendChild(text1);
@@ -199,7 +216,7 @@ function afterSubmit(time,name) {
     setTimeout(function() {
         linkDiv.removeAttribute('style');
       }, 3000);
-    fetchingData(time);
+    fetchingData(res);
 };
 
 function func1() {
@@ -244,7 +261,7 @@ function func4() {
 }
 
 
-function showForm(h3, h6, clock) {
+function showForm(h3, h6) {
 
     let formContainer = document.getElementById("form-container");
     let formExists = document.getElementById("form");
@@ -307,14 +324,10 @@ function showForm(h3, h6, clock) {
             count: h6
 
         };
-        let existing_data = localStorage.getItem(formData.time);
-        let array = existing_data ? JSON.parse(existing_data) : [];
         formData.count--;
-        array.push(formData);
-        localStorage.setItem(formData.time, JSON.stringify(array));
-        console.log('Form submitted:', formData);
+        const response = await axios.post('http://localhost:3000/form_data',formData);
         formContainer.removeChild(form);
-        update_data(clock,formData.name);
+        update_data(response.data.newrowdetails);
     });
 }
 
